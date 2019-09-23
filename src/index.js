@@ -50,6 +50,7 @@ function expressionCalculator(expr) {
       }
       else second += currChar;      
     }
+    result=result.toFixed(13);
     if (result < 0) result = 'n' + (-result);
     return result+'';
 
