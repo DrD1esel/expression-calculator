@@ -8,15 +8,15 @@ function expressionCalculator(expr) {
   var brackets;
 
   while ((brackets = expr.match(/\([0-9.n\+\-\*\/]*\)/g)) != null) {
-    for (var i = 0; i < brackets.length; i++) {
-      var replacer = brackets[i]
+    brackets.forEach(br => {
+      var replacer = br
       while (replacer.charAt(0) == '(' && replacer.charAt(replacer.length - 1) == ')') {
         replacer = replacer.substring(1, replacer.length - 1)
       }
       replacer.match(/[0-9.n\*\/]+/g).forEach(m => { replacer = replacer.replace(m, solve(m)) })
       replacer = solve(replacer)
-      expr = expr.replace(brackets[i], replacer);
-    }
+      expr = expr.replace(br, replacer);
+    })
   }
 
   function solve(simpleExpr) {
@@ -48,13 +48,13 @@ function expressionCalculator(expr) {
         second = ''
         operation = currChar;
       }
-      else second += currChar;      
+      else second += currChar;
     }
-    result=result.toFixed(13);
-    if (result < 0) result = 'n' + (-result);
-    return result+'';
+    if (Math.abs(result)<1) result = result.toFixed(12)   
+    if (result <0) result = 'n' + (-result);
+    return result + '';
 
-  }  
+  }
   if (expr.match(/[\)\(]+/)) throw "ExpressionError: Brackets must be paired"
   if (expr.charAt(0) == 'n') expr = expr.replace('n', '-')
   return +expr
