@@ -4,60 +4,59 @@ function eval() {
 }
 
 function expressionCalculator(expr) {
-  expr = '(' + expr.replace(/ /gi, '') + ')';
-  var brackets;
-
-  while ((brackets = expr.match(/\([0-9.n\+\-\*\/]*\)/g)) != null) {
-    brackets.forEach(br => {
-      var replacer = br
-      while (replacer.charAt(0) == '(' && replacer.charAt(replacer.length - 1) == ')') {
-        replacer = replacer.substring(1, replacer.length - 1)
-      }
-      replacer.match(/[0-9.n\*\/]+/g).forEach(m => { replacer = replacer.replace(m, solve(m)) })
-      replacer = solve(replacer)
-      expr = expr.replace(br, replacer);
-    })
-  }
-
-  function solve(simpleExpr) {
-
-    var foi = simpleExpr.search(/[\/\*\-\+]/);
-
-
-    if (foi == -1) return simpleExpr;
-    if (simpleExpr.charAt(0) == 'n') simpleExpr = simpleExpr.replace('n', '-')
-
-    var result = +simpleExpr.substring(0, foi)
-    var operation = simpleExpr.charAt(foi)
-    var second = ''
-
-    for (var i = foi + 1; i < simpleExpr.length; i++) {
-      var currChar = simpleExpr.charAt(i);
-
-      if (currChar == 'n') second += '-';
-      else if ('/*+-'.search(new RegExp("\\" + currChar)) != -1 || i == simpleExpr.length - 1) {
-
-        if (i == simpleExpr.length - 1) second += currChar;
-        if (operation == '/') {
-          if (second == 0) throw "TypeError: Devision by zero."
-          result /= second;
-        }
-        else if (operation == '*') result *= second;
-        else if (operation == '+') result += (+second);
-        else result -= second;
-        second = ''
-        operation = currChar;
-      }
-      else second += currChar;
-    }
-    if (Math.abs(result)<1) result = result.toFixed(12)   
-    if (result <0) result = 'n' + (-result);
-    return result + '';
-
-  }
-  if (expr.match(/[\)\(]+/)) throw "ExpressionError: Brackets must be paired"
-  if (expr.charAt(0) == 'n') expr = expr.replace('n', '-')
-  return +expr
+  expr = expr.replace(/ /g,'');
+	var numbers = expr.match(/\d+/g).reverse();
+	var priorities = {'-':1, '+':1, '*':2, '/':2};		
+	var output = [];
+	var stack = [];
+	var lastOperator;
+	var values = [];
+	
+	expr.replace(/\d+/g,'D').split('').forEach(elem=>{	
+		if (elem=='D') output.push(numbers.pop());
+		else if (elem=='(') stack.push(elem);
+		else if (elem==')'){
+			var isFound=false;			
+			while (stack.length>0){				
+				var temp = stack.pop();				
+				if (temp=='(') {
+					isFound=true;
+					break;
+				}
+				output.push(temp);
+			}
+			if (!isFound) throw new Error('ExpressionError: Brackets must be paired')
+				
+		} else {
+			while (priorities[elem]<=priorities[lastOperator]){
+				output.push(stack.pop());
+				lastOperator=stack[stack.length-1]=='('?'':stack[stack.length-1];
+			}
+			stack.push(elem);		
+		}
+		lastOperator=stack[stack.length-1]=='('?'':stack[stack.length-1];
+	})	
+	
+	stack.reverse().forEach(elem=>{		
+		if (elem!='(') output.push(elem);
+		else throw new Error('ExpressionError: Brackets must be paired')
+	})
+	
+	output.forEach(elem=>{
+			
+		if ('+-*/'.indexOf(elem)!=-1){			
+			var second=+values.pop();
+			var first=+values.pop();			
+			if (elem=='*') values.push(first*second)
+			if (elem=='/'){
+				if(second==0) throw new Error('TypeError: Division by zero.')
+				else values.push(first/second)
+			}
+			if (elem=='+') values.push(first+second)
+			if (elem=='-') values.push(first-second)
+		} else values.push(elem);
+	})	
+	return values.pop();
 }
 
 module.exports = {
