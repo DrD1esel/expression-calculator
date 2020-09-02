@@ -39,7 +39,7 @@ function expressionCalculator(expr) {
 
         if (i == simpleExpr.length - 1) second += currChar;
         if (operation == '/') {
-          if (second == 0) throw "TypeError: Devision by zero."
+          if (second == 0) throw "TypeError: Division by zero."
           result /= second;
         }
         else if (operation == '*') result *= second;
